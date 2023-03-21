@@ -175,7 +175,11 @@ NewOrder As CanvasComponent:
                         FocusedBorderColor: =Color.Transparent
                         FocusedBorderThickness: =0.2
                         Height: =450
-                        Items: =Filter('Current Stocks','Created Date' = Datetodays && 'Van No'.Warehouse= varUserVanNo.Van.Warehouse)
+                        Items: |-
+                            =Filter(
+                                'Current Stocks',
+                                IsToday('Created Date') && 'Van No'.Warehouse = varUserVanNo.Van.Warehouse
+                            )
                         Layout: =Layout.Vertical
                         LayoutMinHeight: =460
                         LayoutMinWidth: =1200
