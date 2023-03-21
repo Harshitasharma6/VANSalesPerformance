@@ -480,7 +480,7 @@ NewDemandScreen As screen:
                                 If(
                                     IsBlank(
                                         LookUp(
-                                            'Check-in Demand Lines',
+                                            colOfflineTodayDemandsLines,
                                             'SKU Master'.'SKU Master' = OneProduct.productId && 'Check-in Demand Header'.'Check-in Demand Header' = First(colOfflineTodayDemandsHeader).'Check-in Demand Header'
                                         )
                                     ),
@@ -515,7 +515,7 @@ NewDemandScreen As screen:
                                     Patch(
                                         'Check-in Demand Lines',
                                         LookUp(
-                                            'Check-in Demand Lines',
+                                            colOfflineTodayDemandsLines,
                                             'SKU Master'.'SKU Master' = OneProduct.productId && 'Check-in Demand Header'.'Check-in Demand Header' = First(colOfflineTodayDemandsHeader).'Check-in Demand Header'
                                         ),
                                         {
