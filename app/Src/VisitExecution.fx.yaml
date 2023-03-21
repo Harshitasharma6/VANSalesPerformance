@@ -41,7 +41,11 @@
             varDiscountHeader,
             LookUp(
                 'Discount Headers',
-                Branch.'Branch Master' = dataforbranch    )
+                Branch.'Branch Master' = LookUp(
+                    Customers_1,
+                    Account = OrderData.Account
+                ).Branch.'Branch Master'
+            )
         );
         /*Set(
             varPricingLine,
