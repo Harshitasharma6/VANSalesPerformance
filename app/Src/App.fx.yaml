@@ -54,6 +54,12 @@ App As appinfo:
         Reset(txtLoginUsername);
         Reset(txtLoginPassword);
         ///////////////////////////******SAVE DATA*****////////////////////////////
+        Set(dataforbranch,LookUp(
+                            Users,
+                            'Primary Email' = User().Email
+                        ).'Branch Master'.'Branch Master');
+        
+        
         Set(
             Datetodays,
             Date(
@@ -184,17 +190,14 @@ App As appinfo:
                     colOfflineUsers,
                     Filter(
                         Users,
-                        'Branch Master'.'Branch Master' = LookUp(
-                            Users,
-                            'Primary Email' = User().Email
-                        ).'Branch Master'.'Branch Master'
+                        'Branch Master'.'Branch Master' = dataforbranch
                     )
                 );
                 ,
                 ClearCollect(
                     colOfflineAreas,
-                    Areas
-                );
+                    Filter(Areas,' Site/Branch '.'Branch Master'= dataforbranch)
+                );    
                 ,
                 ClearCollect(
                     colOfflineWarehouse,
