@@ -920,7 +920,7 @@ GatePassScreen As screen:
                                 'Stock Transfer Lines',
                                 'Transfer Order No'.'Stock Transfer Header' in varGatePassHeader.headerGUID
                             ),
-                            IsToday('Created On')
+                            Date=Datetodays
                         ),
                         'Transfer accepted' = 'Transfer accepted (Stock Transfer Lines)'.No
                     )
