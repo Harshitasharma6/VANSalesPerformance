@@ -1,0 +1,173 @@
+"LocationConfirmOnVisitScreen As screen.'phoneLayout_FluidGridWithHeaderPageLayout_ver3.0'":
+    Fill: =_VarGblAppColors.LightText
+    OnVisible: =//Set(VisitCust, LookUp(Customers_1, Account=VisitData.accountid))
+
+    compLocationConfirmHeader As Header:
+        HeaderText: ="Checkin"
+        ZIndex: =4
+
+    compLocationConfirmBottomBar As BottomBar:
+        NavItem: |-
+            =Table(
+                {
+                    Title: If(
+                        CountRows(colOfflineTodayAttendance)=0,
+                        "Start",
+                        (CountRows(colOfflineTodayAttendance) = 1 && !IsBlank(First(colOfflineTodayAttendance).'Check-in Time') && IsBlank(First(colOfflineTodayAttendance).'Check-out Time') ),
+                        "End",
+                        (CountRows(colOfflineTodayAttendance) = 1 && !IsBlank(First(colOfflineTodayAttendance).'Check-in Time') && !IsBlank(First(colOfflineTodayAttendance).'Check-out Time')),
+                        "Ended"
+                    ),
+                    Icon: Icon.CalendarBlank,
+                    Screen: 'Attendance Screen',
+                    Active: false
+                },
+                {
+                    Title: "Visit",
+                    Icon: Icon.Waypoint,
+                    Screen: 'Visit Screen',
+                    Active: true
+                },
+                {
+                    Title: "Dashboard",
+                    Icon: Icon.Waffle,
+                    Screen: 'Home Screen',
+                    Active: false
+                },
+                {
+                    Title: "Customers",
+                    Icon: Icon.People,
+                    Screen: 'Customer Screen',
+                    Active: false
+                },
+                {
+                    Title: "Menu",
+                    Icon: Icon.Hamburger,
+                    Screen: 'Menu Screen',
+                    Active: false
+                }
+            )
+        Y: =1026
+        ZIndex: =5
+
+    lblLocationConfirmCustomerName As label:
+        Color: =_VarGblAppColors.PrimaryText
+        FontWeight: =FontWeight.Bold
+        Height: =60
+        Size: =24
+        Text: =//VisitCust.'Customer Name'
+        Width: =284
+        X: =27
+        Y: =80
+        ZIndex: =6
+
+    lblLocationConfirmAddress As label:
+        Align: =Align.Justify
+        Color: =_VarGblAppColors.PrimaryText
+        FontWeight: =FontWeight.Semibold
+        Height: =80
+        Size: =_VarGblAppFonts.Size.UpperMedium
+        Text: =//VisitCust.'Address 1'
+        Width: =597
+        X: =26
+        Y: =170
+        ZIndex: =7
+
+    lblLocationConfirmType As label:
+        Align: =Align.Justify
+        Color: =_VarGblAppColors.PrimaryText
+        FontWeight: =FontWeight.Semibold
+        Height: =30
+        Size: =_VarGblAppFonts.Size.UpperMedium
+        Text: |-
+            ="Contact Person :"
+        Width: =210
+        X: =26
+        Y: =135
+        ZIndex: =8
+
+    lblLocationConfirmTypeValue As label:
+        Align: =Align.Justify
+        Color: =_VarGblAppColors.PrimaryText
+        FontWeight: =FontWeight.Semibold
+        Height: =30
+        Size: =_VarGblAppFonts.Size.UpperMedium
+        Text: =//VisitCust.'Contact Person name'
+        Width: =300
+        X: =229
+        Y: =135
+        ZIndex: =9
+
+    "mapLocationConfirm As 'Map (preview)'.pcfdataset":
+        BorderColor: =RGBA(0, 18, 107, 1)
+        DefaultLocation: =true
+        DisplayMode: =DisplayMode.Edit
+        Height: =691
+        Items: =
+        ItemsLatitudes: =
+        ItemsLongitudes: =
+        PinColor: =RGBA(29, 114, 169, 1)
+        Visible: =true
+        Width: =App.Width-10
+        X: =5
+        Y: =262
+        ZIndex: =10
+
+        Value1 As pcfDataField.textualColumn:
+            FieldDisplayName: ="Value"
+            FieldName: ="Value"
+            FieldType: |-
+                ="![lat:s, long:s]"
+            FieldVariantName: ="textualColumn"
+            Order: =1
+            ZIndex: =2
+
+    grpLocationConfirmContinue As group:
+        Height: =5
+        Width: =5
+        X: =40
+        Y: =40
+        ZIndex: =13
+
+        btnLocationConfirmContinue As button:
+            Color: =_VarGblAppColors.LightText
+            DisplayMode: |-
+                =//If(VisitData.'Address 1: Latitude'=Location.Latitude || VisitData.'Address 1: Longitude'=Location.Longitude, DisplayMode.Edit, DisplayMode.Disabled)
+                DisplayMode.Edit
+            Fill: =_VarGblAppColors.BisleriBlue
+            FocusedBorderThickness: =2
+            Height: =49
+            HoverFill: =ColorFade(_VarGblAppColors.BisleriBlue, -20%)
+            OnSelect: =//Set(varVisitPopup, true);
+            PaddingLeft: =25
+            Size: =_VarGblAppFonts.Size.Title
+            Text: ="     CONTINUE"
+            Visible: |-
+                =//If(VisitData.'Address 1: Latitude'=Location.Latitude && VisitData.'Address 1: Longitude'=Location.Longitude, true, false)
+                true
+            Width: =223
+            X: =400
+            Y: =977
+            ZIndex: =11
+
+        icoLocationConfirmContinue As icon.OpenInNewWindow:
+            AccessibleLabel: ="icoLocationConfirmContinue"
+            Color: =RGBA(255, 255, 255, 1)
+            DisplayMode: |-
+                =//If(VisitCust.'Address 1: Latitude'=Location.Latitude && VisitCust.'Address 1: Longitude'=Location.Longitude, DisplayMode.Edit, DisplayMode.Disabled)
+            Height: =36
+            Icon: =Icon.OpenInNewWindow
+            OnSelect: =//Set(varVisitPopup, true);
+            PaddingBottom: =7
+            PaddingLeft: =6
+            PaddingRight: =7
+            PaddingTop: =7
+            TabIndex: =0
+            Visible: |-
+                =//If(VisitData.'Address 1: Latitude'=Location.Latitude && VisitData.'Address 1: Longitude'=Location.Longitude, true, false)
+                true
+            Width: =36
+            X: =413
+            Y: =983
+            ZIndex: =12
+
