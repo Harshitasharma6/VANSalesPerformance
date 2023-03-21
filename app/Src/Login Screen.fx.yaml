@@ -1,0 +1,151 @@
+"'Login Screen' As screen":
+    Fill: =_VarGblAppColors.BisleriBlue
+    OnVisible: |-
+        =Set(varHidePassword, true);
+        Reset(txtLoginUsername);
+        Reset(txtLoginPassword);
+
+    btnLoginBackground As button:
+        DisabledBorderColor: =_VarGblAppColors.LightText
+        DisabledFill: =_VarGblAppColors.LightText
+        DisplayMode: =DisplayMode.Disabled
+        Height: =678
+        RadiusBottomLeft: =0
+        RadiusBottomRight: =0
+        RadiusTopLeft: =80
+        RadiusTopRight: =80
+        Size: =24
+        Text: =""
+        Width: =App.Width
+        Y: =458
+        ZIndex: =1
+
+    txtLoginUsername As text:
+        AccessibleLabel: ="txtLoginUsername"
+        BorderColor: =_VarGblAppColors.BisleriBlue
+        Default: =""
+        FocusedBorderThickness: =2
+        Height: =60
+        HintText: ="Username"
+        HoverBorderColor: =ColorFade(_VarGblAppColors.BisleriBlue, -20%)
+        HoverFill: =ColorFade(_VarGblAppColors.BisleriBlue, 70%)
+        Size: =_VarGblAppFonts.Size.Title
+        Width: =560
+        X: =36
+        Y: =596
+        ZIndex: =2
+
+    txtLoginPassword As text:
+        AccessibleLabel: ="txtLoginPassword"
+        BorderColor: =_VarGblAppColors.BisleriBlue
+        Default: =""
+        FocusedBorderThickness: =2
+        Height: =60
+        HintText: ="Password"
+        HoverBorderColor: =ColorFade(_VarGblAppColors.BisleriBlue, -20%)
+        HoverFill: =ColorFade(_VarGblAppColors.BisleriBlue, 70%)
+        Mode: =If(varHidePassword, TextMode.Password, TextMode.SingleLine)
+        Size: =_VarGblAppFonts.Size.Title
+        Width: =560
+        X: =36
+        Y: =720
+        ZIndex: =3
+
+    btnLogin As button:
+        Fill: =_VarGblAppColors.BisleriBlue
+        Height: =59
+        HoverFill: =ColorFade(_VarGblAppColors.BisleriBlue, -20%)
+        OnSelect: |-
+            =If(
+                    IsBlank(
+                        LookUp(
+                            Attendances,
+                            User.'Primary Email' = User().Email && !IsBlank('Check-out Time') && IsToday('Created On')
+                        )
+                    ),Navigate(GatePassScreen);
+            Set(
+                varGatePassHeader,
+                AddColumns(
+                    Filter(
+                        'Stock Transfer Headers',
+                        !IsBlank('To Location') &&
+                        'To Location'.Warehouse = LookUp(
+                            Warehouses,
+                            Warehouse = varUserVanNo.Van.Warehouse
+                        ).Warehouse && 'Stock transfer type' = 'Stock transfer type (Stock Transfer Headers)'.'Warehouse to van transfer' && IsToday('Created On')
+                    ),
+                    "headerGUID",
+                    'Stock Transfer Header'
+                )
+            );
+            ,
+            Navigate('Attendance Screen'))
+        RadiusBottomLeft: =5
+        RadiusBottomRight: =5
+        RadiusTopLeft: =5
+        RadiusTopRight: =5
+        Size: =_VarGblAppFonts.Size.Title
+        Text: ="Login"
+        Width: =559
+        X: =36
+        Y: =891
+        ZIndex: =4
+
+    lblLoginForgotPassword As label:
+        Color: =_VarGblAppColors.SecondaryText
+        Height: =42
+        Size: =_VarGblAppFonts.Size.Subtitle
+        Text: ="Forgot Password"
+        Underline: =true
+        Width: =160
+        X: =36
+        Y: =799
+        ZIndex: =5
+
+    shpLoginPasswordShow As rectangle:
+        DisplayMode: =DisplayMode.Disabled
+        Fill: =_VarGblAppColors.LightText
+        Height: =55
+        Width: =60
+        X: =535
+        Y: =722
+        ZIndex: =6
+
+    icoLoginPasswordShow As icon.View:
+        AccessibleLabel: ="icoLoginPasswordShow"
+        Color: =_VarGblAppColors.BisleriBlue
+        Height: =30
+        Icon: =Icon.View
+        OnSelect: =Set(varHidePassword, !varHidePassword)
+        TabIndex: =0
+        Width: =30
+        X: =550
+        Y: =734
+        ZIndex: =7
+
+    imgLoginBisleriLogo As image:
+        AccessibleLabel: ="imgLoginBisleriLogo"
+        Height: =229
+        Image: ='Bisleri Logo'
+        ImagePosition: =ImagePosition.Fill
+        Width: =505
+        X: =60
+        Y: =40
+        ZIndex: =8
+
+    Label20 As label:
+        Height: =70
+        Size: =21
+        Text: |-
+            =IsToday(First(
+                    Sort(
+                        'Discount Lines',
+                        Code,
+                        SortOrder.Descending
+                    )
+                ).'Discount Date')
+        Width: =560
+        X: =36
+        Y: =499
+        ZIndex: =9
+

@@ -1,0 +1,2616 @@
+PaymentQR As screen:
+
+    Timer1 As timer:
+        AutoStart: =If(var.body.resultInfo.resultCode="01",false,true)
+        Duration: =6000
+        Height: =70
+        OnTimerStart: |
+            =Set(
+                var,
+                Statuscheckpayment.Checkstatus(
+                    {
+                        'Content-type': "application/json",
+                        Orderid: Right(
+                            First(CreateOrderRecord).'Order Id',
+                            3
+                        )
+                    }
+                )
+            );
+            If(
+                var.body.resultInfo.resultCode = "01",
+                Collect(
+                    PaymentList,
+                    var
+                ),
+                ""
+            );
+            If(
+                var.body.resultInfo.resultCode = "01",
+                Patch(
+                    Payments,
+                    Defaults(Payments),
+                    {
+                        'Receipt Date': Today(),
+                        Customer: LookUp(
+                            Customers_1,
+                            Account = cmbPaymentCustomer.Selected.Account
+                        ),
+                        Salesperson: LookUp(
+                            Users,
+                            'Primary Email' = User().Email
+                        ),
+                        Amount: Value(var.body.txnAmount),
+                        Route: LookUp(
+                            Areas,
+                            Area = varUserArea.Area.Area
+                        ),
+                        'Van No': LookUp(
+                            Warehouses,
+                            Warehouse = varUserVanNo.Van.Warehouse
+                        ),
+                        Order: LookUp(
+                            'Order Headers',
+                            'Order Id' = First(CreateOrderRecord).'Order Id'
+                        ),
+                        'Receipt ID': var.body.bankTxnId,
+                        ChequeNo: var.body.bankTxnId
+                    }
+                )
+            );
+            If(
+                var.body.resultInfo.resultCode = "01",
+                Patch(
+                    'Order Headers',
+                    LookUp(
+                        'Order Headers',
+                        'Order Id' = First(CreateOrderRecord).'Order Id'
+                    ),
+                    {'Payment Status': 'Payment Status Choice'.Completed}
+                ),
+                false
+            );
+            If(
+                var.body.resultInfo.resultCode = "01",
+                Patch(
+                    Visits,
+                    LookUp(
+                        Visits,
+                        'Visit ID' = First(VisitData).'Visit ID'
+                    ),
+                    {
+                        'Check-out Latitude': Location.Latitude,
+                        'Check-out Longitude': Location.Longitude,
+                        'Check-out Time': Now()
+                    }
+                ),
+                false
+            );
+            ////////////////////////////////////////////////////IRN Item Data Condition
+            Clear(ManipulatedCartCollection);
+            ForAll(
+                CreateItemsRecord As Item,
+                If(
+                    !IsBlank(Item.'Reference Scheme '),
+                    Collect(
+                        ManipulatedCartCollection,
+                        {
+                            SlNo: Item.'Order Line No',
+                            PrdDesc: Item.'Item SKU'.'Name (zx_namess)',
+                            IsServc: "N",
+                            HsnCd: "10019920",
+                            Barcde: "",
+                            FreeQty: Item.'Total Quantity',
+                            Unit: "PCS",
+                            UnitPrice: Item.'Cases Unit Price',
+                            TotAmt: Item.'Total Discount Amount',
+                            Discount: Item.'Total Discount Amount',
+                            PreTaxVal: 1,
+                            AssAmt: 9978.84,
+                            GstRt: 12.0,
+                            IgstAmt: 0,
+                            CgstAmt: 0,
+                            SgstAmt: 0,
+                            CesRt: 5,
+                            CesAmt: 498.94,
+                            CesNonAdvlAmt: 10,
+                            StateCesRt: 12,
+                            StateCesAmt: 1197.46,
+                            StateCesNonAdvlAmt: 5,
+                            OthChrg: 10,
+                            TotItemVal: Item.'Total Discount Amount',
+                            OrdLineRef: "3256",
+                            OrgCntry: "AG",
+                            PrdSlNo: "12345",
+                            AttribDtls: Table(
+                                {
+                                    Nm: "Rice",
+                                    Val: "10000"
+                                }
+                            )
+                        }
+                    ),
+                    Collect(
+                        ManipulatedCartCollection,
+                        {
+                            SlNo: Item.'Order Line No',
+                            PrdDesc: Item.'Item SKU'.'Name (zx_namess)',
+                            IsServc: "N",
+                            HsnCd: "10019920",
+                            Barcde: "",
+                            FreeQty: Item.'Total Quantity',
+                            Unit: "PCS",
+                            UnitPrice: Item.'Cases Unit Price',
+                            TotAmt: Item.'Total Discount Amount',
+                            Discount: Item.'Total Discount Amount',
+                            PreTaxVal: 1,
+                            AssAmt: 9978.84,
+                            GstRt: 12.0,
+                            IgstAmt: 0,
+                            CgstAmt: 0,
+                            SgstAmt: 0,
+                            CesRt: 5,
+                            CesAmt: 498.94,
+                            CesNonAdvlAmt: 10,
+                            StateCesRt: 12,
+                            StateCesAmt: 1197.46,
+                            StateCesNonAdvlAmt: 5,
+                            OthChrg: 10,
+                            TotItemVal: Item.'Total Discount Amount',
+                            OrdLineRef: "3256",
+                            OrgCntry: "AG",
+                            PrdSlNo: "12345",
+                            AttribDtls: Table(
+                                {
+                                    Nm: "Rice",
+                                    Val: "10000"
+                                }
+                            )
+                        }
+                    )
+                )
+            );
+            ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////IRN 
+            Collect(
+                Productline,
+                {
+                    Nm: "BISLERI WATER 20LTR (MRP 90)",
+                    Val: "1000"
+                }
+            );
+            Collect(
+                ProductList,
+                {
+                    SlNo: "160000",
+                    PrdDesc: "BISLERI WATER 20LTR (MRP 90)",
+                    IsServc: "N",
+                    HsnCd: "22011010",
+                    Barcde: "FBW20000010090JRGN",
+                    Qty: 3,
+                    FreeQty: 0,
+                    Unit: "PCS",
+                    UnitPrice: 57,
+                    TotAmt: 173,
+                    Discount: 0,
+                    PreTaxVal: 0,
+                    AssAmt: 173,
+                    GstRt: 12,
+                    IgstAmt: 0,
+                    CgstAmt: 10,
+                    SgstAmt: 10,
+                    CesRt: 0,
+                    CesAmt: 0,
+                    CesNonAdvlAmt: 0,
+                    StateCesRt: 0,
+                    StateCesAmt: 0,
+                    StateCesNonAdvlAmt: 0,
+                    OthChrg: 0,
+                    TotItemVal: 194,
+                    OrdLineRef: "1234",
+                    OrgCntry: "IN",
+                    PrdSlNo: "12345",
+                    BchDtls: {
+                        Nm: "361",
+                        ExpDt: "26/01/2023",
+                        WrDt: "26/01/2023"
+                    },
+                    AttribDtls: Productline
+                }
+            );
+            If(
+                CountRows(CreateOrderRecord) > 0 && CountRows(CreateItemsRecord),
+                Set(
+                    testButton,
+                    IRN.IRn(
+                        {
+                            'Content-Type': "applcattion/json",
+                            'x-cleartax-auth-token': "1.dd8d5b2c-8056-4a40-8177-d9990708a3b4_bf12581e12b80c05d798d80ec47ebd29781a3e4ca42b69b2fdde125df2c934b9",
+                            'x-cleartax-product': "EInvoice",
+                            owner_id: "7005967e-8331-40a2-b437-f99ea6e74193",
+                            gstin: "27AAFCD5862R013",
+                            Version: "1.1",
+                            TranDtls: {
+                                TaxSch: "GST",
+                                SupTyp: "B2B",
+                                RegRev: "N",
+                                IgstOnIntra: "N"
+                            },
+                            DocDtls: {
+                                Typ: "INV",
+                                No: "RI2223C064007302",
+                                Dt: "24/12/2022"
+                            },
+                            SellerDtls: {
+                                Gstin: "27AAFCD5862R013",
+                                LglNm: "MH04GR6972",
+                                TrdNm: "MH04GR6972",
+                                Addr1: "JUPITOR HOSPITAL",
+                                Addr2: "THANE",
+                                Loc: "V433",
+                                Pin: 400407,
+                                Stcd: "27",
+                                Ph: "982565858",
+                                Em: "Test123@gmail.com"
+                            },
+                            /*    
+                            BuyerDtls: {
+                                Gstin: "27AABCJ1982E1ZN",
+                                LglNm: "FORTUNE PARK LAKE CITY",
+                                TrdNm: "FORTUNE PARK LAKE CITY",
+                                Pos: "27",
+                                Addr1: "JUPITER MEDIPARKEASTERN EXPRESS HIGHWAY THANE",
+                                Addr2: "WEST",
+                                Loc: "Maharashtra",
+                                Pin: 400601,
+                                Stcd: "27",
+                                Ph: "859657852",
+                                Em: "Test123@gmail.com"
+                            },
+                    */
+                            BuyerDtls: {
+                                Gstin: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).GSTIN,
+                                LglNm: OrderData.'Customer Name',
+                                TrdNm: "",
+                                Pos: Left(
+                                    LookUp(
+                                        AllCustomerss,
+                                        Account = OrderData.Account
+                                    ).GSTIN,
+                                    2
+                                ),
+                                Addr1: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).'Address 1: Street 1',
+                                Addr2: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).'Address 1: Street 2',
+                                Loc: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).'Address 1: City',
+                                Pin: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).'Address 1: ZIP/Postal Code',
+                                Stcd: Left(
+                                    LookUp(
+                                        AllCustomerss,
+                                        Account = OrderData.Account
+                                    ).GSTIN,
+                                    2
+                                ),
+                                Ph: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).'Mobile No',
+                                Em: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).Email
+                            },
+                            DispDtls: {
+                                Nm: "MH04GR6972",
+                                Addr1: "JUPITOR HOSPITAL",
+                                Addr2: "THANE",
+                                Loc: "V433",
+                                Pin: 400407,
+                                Stcd: "27"
+                            },
+                            /*
+                            ShipDtls: {
+                                Gstin: "27AABCJ1982E1ZN",
+                                LglNm: "FORTUNE PARK LAKE CITY",
+                                TrdNm: "FORTUNE PARK LAKE CITY",
+                                Addr1: "JUPITER MEDIPARKEASTERN EXPRESS HIGHWAY THANE",
+                                Addr2: "WEST",
+                                Loc: "Maharashtra",
+                                Pin: 400601,
+                                Stcd: "27"
+                            },
+                    */
+                            ShipDtls: {
+                                Gstin: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).GSTIN,
+                                LglNm: OrderData.'Customer Name',
+                                TrdNm: "",
+                                Addr1: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).'Address 1: Street 1',
+                                Addr2: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).'Address 1: Street 2',
+                                Loc: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).'Address 1: City',
+                                Pin: LookUp(
+                                    AllCustomerss,
+                                    Account = OrderData.Account
+                                ).'Address 1: ZIP/Postal Code',
+                                Stcd: Left(
+                                    LookUp(
+                                        AllCustomerss,
+                                        Account = OrderData.Account
+                                    ).GSTIN,
+                                    2
+                                )
+                            },
+                            ItemList: ManipulatedCartCollection
+                        //  ItemList: First(ProductList)
+                        }
+                    )
+                );
+                If(
+                    !IsBlank(testButton),
+                    Patch(
+                        'Invoice Headers',
+                        LookUp(
+                            'Invoice Headers',
+                            'Invoice Number' = First(CreateInvHeader).'Invoice Number'
+                        ),
+                        {'Signed QR Code': Text(testButton.SignedQRCode)}
+                    );
+                )
+            );
+            /////////////////////////////////////////////////////////_______________STOCK UPDATION FOR CASES
+            ClearCollect(
+                CurrentQtyCases,
+                First(colCartItems).qtyCases
+            );
+            Clear(StockLinesForFIFO);
+            ForAll(
+                Filter(
+                    colCartItems,
+                    schemeOrder = false
+                ) As OneProductItem,
+                Collect(
+                    StockLinesForFIFO,
+                    Sort(
+                        Filter(
+                            Filter(
+                                'Stock Transfer Lines',
+                                ('Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID) && (SKU.'SKU Master' = OneProductItem.productId)
+                            ),
+                            IsToday('Created On')
+                        ),
+                        'Manufacturing date',
+                        SortOrder.Ascending
+                    )
+                );
+                Patch(
+                    CurrentQtyCases,
+                    First(CurrentQtyCases),
+                    {Value: OneProductItem.qtyCases}
+                );
+                ForAll(
+                    StockLinesForFIFO As OneFifoItem,
+                    If(
+                        First(CurrentQtyCases).Value > 0 && OneFifoItem.'Remaining Qty Cases' > 0 && OneFifoItem.SKU.'SKU Master' = OneProductItem.productId,
+                        //Checking First condition if the qty is less then remainining of old_______________________________________________
+                        If(
+                            (First(CurrentQtyCases).Value <= OneFifoItem.'Remaining Qty Cases'),
+                            //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    ),
+                                    {
+                                        qtyCases: ((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyCases) + (First(CurrentQtyCases).Value)),
+                                        totalCasePriceWithoutDisc: OneProductItem.caseUnitPrice * (((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyCases) + (First(CurrentQtyCases).Value)))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: First(CurrentQtyCases).Value,
+                                        qtyPcs: 0,
+                                        scheme: false,
+                                        caseUnitPrice: OneProductItem.caseUnitPrice,
+                                        pcsUnitPrice: OneProductItem.pcsUnitPrice,
+                                        totalCasePriceWithoutDisc: OneProductItem.caseUnitPrice * First(CurrentQtyCases).Value,
+                                        totalPcsPriceWithoutDisc: 0,
+                                        TotalTax: OneProductItem.tax
+                                    }
+                                );
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Cases': OneFifoItem.'Remaining Qty Cases' - First(CurrentQtyCases).Value,
+                                    'Invoiced Qty Cases': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Cases') + First(CurrentQtyCases).Value)
+                                }
+                            );
+                            Patch(
+                                CurrentQtyCases,
+                                First(CurrentQtyCases),
+                                {Value: 0}
+                            );
+                            ,
+                            //Checking Second condition if the (qty is greater then remainining cases) 
+                            ((First(CurrentQtyCases).Value > OneFifoItem.'Remaining Qty Cases')),
+                             //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    ),
+                                    {
+                                        qtyCases: ((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyCases) + (OneFifoItem.'Remaining Qty Cases')),
+                                        totalCasePriceWithoutDisc: OneProductItem.caseUnitPrice * (((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyCases) + (OneFifoItem.'Remaining Qty Cases')))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: OneFifoItem.'Remaining Qty Cases',
+                                        qtyPcs: 0,
+                                        scheme: false,
+                                        caseUnitPrice: OneProductItem.caseUnitPrice,
+                                        pcsUnitPrice: OneProductItem.pcsUnitPrice,
+                                        totalCasePriceWithoutDisc: OneProductItem.caseUnitPrice * First(CurrentQtyCases).Value,
+                                        totalPcsPriceWithoutDisc: 0,
+                                        TotalTax: OneProductItem.tax
+                                    }
+                                );
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Cases': 0,
+                                    'Invoiced Qty Cases': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Cases') + OneFifoItem.'Remaining Qty Cases')
+                                }
+                            );
+                            Patch(
+                                CurrentQtyCases,
+                                First(CurrentQtyCases),
+                                {Value: ((First(CurrentQtyCases).Value - OneFifoItem.'Remaining Qty Cases'))}
+                            );
+                        )
+                    )
+                )
+            );
+            /////////////////////////////////////////////////////////_______________STOCK UPDATION FOR PCS       ____________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+            ClearCollect(
+                CurrentQty,
+                First(colCartItems).qtyPcs
+            );
+            ClearCollect(
+                SequenceTestingVariable,
+                false
+            );
+            ClearCollect(
+                SequenceNo,
+                0
+            );
+            Clear(StockLinesForFIFO);
+            ForAll(
+                Filter(
+                    colCartItems,
+                    schemeOrder = false
+                ) As OneProductItem,
+                Collect(
+                    StockLinesForFIFO,
+                    Sort(
+                        Filter(
+                            Filter(
+                                'Stock Transfer Lines',
+                                ('Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID) && (SKU.'SKU Master' = OneProductItem.productId)
+                            ),
+                            IsToday('Created On')
+                        ),
+                        'Manufacturing date',
+                        SortOrder.Ascending
+                    )
+                );
+                Patch(
+                    CurrentQty,
+                    First(CurrentQty),
+                    {Value: OneProductItem.qtyPcs}
+                );
+                ForAll(
+                    StockLinesForFIFO As OneFifoItem,
+                    If(
+                        First(CurrentQty).Value > 0 && OneFifoItem.'Remaining Qty Pcs' > 0 && OneFifoItem.SKU.'SKU Master' = OneProductItem.productId,
+                        //Checking First condition if the qty is less then remainining of old_______________________________________________
+                        If(
+                            (First(CurrentQty).Value <= OneFifoItem.'Remaining Qty Pcs'),
+                            //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    ),
+                                    {
+                                        qtyPcs: ((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyPcs) + (First(CurrentQty).Value)),
+                                        totalPcsPriceWithoutDisc: OneProductItem.pcsUnitPrice * (((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyPcs) + (First(CurrentQty).Value)))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: 0,
+                                        qtyPcs: First(CurrentQty).Value,
+                                        scheme: false,
+                                        caseUnitPrice: OneProductItem.caseUnitPrice,
+                                        pcsUnitPrice: OneProductItem.pcsUnitPrice,
+                                        totalPcsPriceWithoutDisc: OneProductItem.pcsUnitPrice * First(CurrentQty).Value,
+                                        totalCasePriceWithoutDisc: 0,
+                                        TotalTax: OneProductItem.tax
+                                    }
+                                );
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Pcs': OneFifoItem.'Remaining Qty Pcs' - First(CurrentQty).Value,
+                                    'Invoiced Qty Pcs.': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Pcs.') + First(CurrentQty).Value)
+                                }
+                            );
+                            Patch(
+                                CurrentQty,
+                                First(CurrentQty),
+                                {Value: 0}
+                            );
+                            ,
+                            //Checking Second condition if the (qty is greater then remainining pcs) && ((Qty-Rem Pcs)< Conversion) ______
+                            ((First(CurrentQty).Value > OneFifoItem.'Remaining Qty Pcs') && ((First(CurrentQty).Value - OneFifoItem.'Remaining Qty Pcs') < (OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                'Item UOMS',
+                                SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                            ).'Quantity Per UOM'))),
+                             //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    ),
+                                    {
+                                        qtyPcs: ((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyPcs) + (First(CurrentQty).Value)),
+                                        totalPcsPriceWithoutDisc: OneProductItem.pcsUnitPrice * (((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyPcs) + (First(CurrentQty).Value)))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: 0,
+                                        qtyPcs: First(CurrentQty).Value,
+                                        scheme: false,
+                                        caseUnitPrice: OneProductItem.caseUnitPrice,
+                                        pcsUnitPrice: OneProductItem.pcsUnitPrice,
+                                        totalPcsPriceWithoutDisc: OneProductItem.pcsUnitPrice * First(CurrentQty).Value,
+                                        totalCasePriceWithoutDisc: 0,
+                                        TotalTax: OneProductItem.tax
+                                    }
+                                );
+                            );
+                            
+            //Testingggggg__________________________________________________________________________________________________
+            Patch(
+                                SequenceTestingVariable,
+                                First(SequenceTestingVariable),
+                                {Value: true}
+                            );
+                            ForAll(
+                                Sequence(OneFifoItem.'Remaining Qty Cases') As sequenceNo,
+                                If(
+                                    First(SequenceTestingVariable).Value,
+                                    If(
+                                        ((sequenceNo.Value * LookUp(
+                                            'Item UOMS',
+                                            SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                        ).'Quantity Per UOM') >= (First(CurrentQty).Value - OneFifoItem.'Remaining Qty Pcs')),
+                                        Patch(
+                                            SequenceTestingVariable,
+                                            First(SequenceTestingVariable),
+                                            {Value: false}
+                                        );
+                                        Patch(
+                                            SequenceNo,
+                                            First(SequenceNo),
+                                            {Value: sequenceNo.Value}
+                                        );
+                                    )
+                                )
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Pcs': ((First(SequenceNo).Value) * LookUp(
+                                        'Item UOMS',
+                                        SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                    ).'Quantity Per UOM') - (First(CurrentQty).Value - OneFifoItem.'Remaining Qty Pcs'),
+                                    'Invoiced Qty Pcs.': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Pcs.') + First(CurrentQty).Value),
+                                    'Remaining Qty Cases': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Remaining Qty Cases') - First(SequenceNo).Value)
+                                }
+                            );
+                            Patch(
+                                CurrentQty,
+                                First(CurrentQty),
+                                {Value: 0}
+                            );
+                            ,
+                            //Checking Third condition if the (qty is greater then remainining pcs) && ((Qty-Rem Pcs)> Conversion) ______
+                            ((First(CurrentQty).Value > OneFifoItem.'Remaining Qty Pcs') && ((First(CurrentQty).Value - OneFifoItem.'Remaining Qty Pcs') > (OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                'Item UOMS',
+                                SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                            ).'Quantity Per UOM'))),
+                             //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = false
+                                    ),
+                                    {
+                                        qtyPcs: (( LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyPcs) + ((OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                            'Item UOMS',
+                                            SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                        ).'Quantity Per UOM') + (OneFifoItem.'Remaining Qty Pcs'))),
+                                        totalPcsPriceWithoutDisc: OneProductItem.pcsUnitPrice * ((( LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date'
+                                        ).qtyPcs) + ((OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                            'Item UOMS',
+                                            SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                        ).'Quantity Per UOM') + (OneFifoItem.'Remaining Qty Pcs'))))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: 0,
+                                        qtyPcs: ((OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                            'Item UOMS',
+                                            SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                        ).'Quantity Per UOM') + (OneFifoItem.'Remaining Qty Pcs')),
+                                        scheme: false,
+                                        caseUnitPrice: OneProductItem.caseUnitPrice,
+                                        pcsUnitPrice: OneProductItem.pcsUnitPrice,
+                                        totalPcsPriceWithoutDisc: OneProductItem.pcsUnitPrice * ((OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                            'Item UOMS',
+                                            SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                        ).'Quantity Per UOM') + (OneFifoItem.'Remaining Qty Pcs')),
+                                        totalCasePriceWithoutDisc: 0,
+                                        TotalTax: OneProductItem.tax
+                                    }
+                                );
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Pcs': 0,
+                                    'Invoiced Qty Pcs.': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Pcs.') + ((OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                        'Item UOMS',
+                                        SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                    ).'Quantity Per UOM') + (OneFifoItem.'Remaining Qty Pcs'))),
+                                    'Remaining Qty Cases': 0
+                                  /*  'Invoiced Qty Cases': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Cases') + OneFifoItem.'Remaining Qty Cases') */
+                                }
+                            );
+                            Patch(
+                                CurrentQty,
+                                First(CurrentQty),
+                                {
+                                    Value: ((First(CurrentQty).Value - OneFifoItem.'Remaining Qty Pcs') - (OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                        'Item UOMS',
+                                        SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                    ).'Quantity Per UOM'))
+                                }
+                            );
+                        )
+                    )
+                )
+            );
+            /////////////////////////////////////////////_______________///////SCHEME CART MANIPULATION AND FIFO IMPLEMENTATION
+            /////////////////////////////////////////////////////////_______________STOCK UPDATION FOR CASES __________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+            ClearCollect(
+                CurrentQtyCasesScheme,
+                First(colCartItems).qtyCases
+            );
+            Clear(StockLinesForFIFO);
+            ForAll(
+                Filter(
+                    colCartItems,
+                    schemeOrder = true
+                ) As OneProductItem,
+                Collect(
+                    StockLinesForFIFO,
+                    Sort(
+                        Filter(
+                            Filter(
+                                'Stock Transfer Lines',
+                                ('Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID) && (SKU.'SKU Master' = OneProductItem.productId)
+                            ),
+                            IsToday('Created On')
+                        ),
+                        'Manufacturing date',
+                        SortOrder.Ascending
+                    )
+                );
+                Patch(
+                    CurrentQtyCasesScheme,
+                    First(CurrentQtyCasesScheme),
+                    {Value: OneProductItem.qtyCases}
+                );
+                ForAll(
+                    StockLinesForFIFO As OneFifoItem,
+                    If(
+                        First(CurrentQtyCasesScheme).Value > 0 && OneFifoItem.'Remaining Qty Cases' > 0 && OneFifoItem.SKU.'SKU Master' = OneProductItem.productId,
+                        //Checking First condition if the qty is less then remainining of old_______________________________________________
+                        If(
+                            (First(CurrentQtyCasesScheme).Value <= OneFifoItem.'Remaining Qty Cases'),
+                            //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    ),
+                                    {
+                                        qtyCases: ((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                        ).qtyCases) + (First(CurrentQtyCasesScheme).Value))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: First(CurrentQtyCasesScheme).Value,
+                                        qtyPcs: 0,
+                                        scheme: true
+                                    }
+                                );
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Cases': OneFifoItem.'Remaining Qty Cases' - First(CurrentQtyCasesScheme).Value,
+                                    'Invoiced Qty Cases': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Cases') + First(CurrentQtyCasesScheme).Value)
+                                }
+                            );
+                            Patch(
+                                CurrentQtyCasesScheme,
+                                First(CurrentQtyCasesScheme),
+                                {Value: 0}
+                            );
+                            ,
+                            //Checking Second condition if the (qty is greater then remainining cases) 
+                            ((First(CurrentQtyCasesScheme).Value > OneFifoItem.'Remaining Qty Cases')),
+                             //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    ),
+                                    {
+                                        qtyCases: ((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                        ).qtyCases) + (OneFifoItem.'Remaining Qty Cases'))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: OneFifoItem.'Remaining Qty Cases',
+                                        qtyPcs: 0,
+                                        scheme: true
+                                    }
+                                );
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Cases': 0,
+                                    'Invoiced Qty Cases': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Cases') + OneFifoItem.'Remaining Qty Cases')
+                                }
+                            );
+                            Patch(
+                                CurrentQtyCasesScheme,
+                                First(CurrentQtyCasesScheme),
+                                {Value: ((First(CurrentQtyCasesScheme).Value - OneFifoItem.'Remaining Qty Cases'))}
+                            );
+                        )
+                    )
+                )
+            );
+            /////////////////////////////////////////////////////////_______________STOCK UPDATION FOR PCS__________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________________
+            ClearCollect(
+                CurrentQtyScheme,
+                First(colCartItems).qtyPcs
+            );
+            ClearCollect(
+                SequenceTestingVariable1,
+                false
+            );
+            ClearCollect(
+                SequenceNo1,
+                0
+            );
+            Clear(StockLinesForFIFO);
+            ForAll(
+                Filter(
+                    colCartItems,
+                    schemeOrder = true
+                ) As OneProductItem,
+                Collect(
+                    StockLinesForFIFO,
+                    Sort(
+                        Filter(
+                            Filter(
+                                'Stock Transfer Lines',
+                                ('Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID) && (SKU.'SKU Master' = OneProductItem.productId)
+                            ),
+                            IsToday('Created On')
+                        ),
+                        'Manufacturing date',
+                        SortOrder.Ascending
+                    )
+                );
+                Patch(
+                    CurrentQtyScheme,
+                    First(CurrentQtyScheme),
+                    {Value: OneProductItem.qtyPcs}
+                );
+                ForAll(
+                    StockLinesForFIFO As OneFifoItem,
+                    If(
+                        First(CurrentQtyScheme).Value > 0 && OneFifoItem.'Remaining Qty Pcs' > 0 && OneFifoItem.SKU.'SKU Master' = OneProductItem.productId,
+                                    //Checking First condition if the qty is less then remainining of old_______________________________________________
+                        If(
+                            (First(CurrentQtyScheme).Value <= OneFifoItem.'Remaining Qty Pcs'),
+                            //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    ),
+                                    {
+                                        qtyPcs: ((LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                        ).qtyPcs) + (First(CurrentQtyScheme).Value))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: 0,
+                                        qtyPcs: First(CurrentQtyScheme).Value,
+                                        scheme: true
+                                    }
+                                );
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Pcs': OneFifoItem.'Remaining Qty Pcs' - First(CurrentQtyScheme).Value,
+                                    'Invoiced Qty Pcs.': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Pcs.') + First(CurrentQtyScheme).Value)
+                                }
+                            );
+                            Patch(
+                                CurrentQtyScheme,
+                                First(CurrentQtyScheme),
+                                {Value: 0}
+                            );
+                            ,
+                            //Checking Second condition if the (qty is greater then remainining pcs) && ((Qty-Rem Pcs)< Conversion) ______
+                            ((First(CurrentQtyScheme).Value > OneFifoItem.'Remaining Qty Pcs') && ((First(CurrentQtyScheme).Value - OneFifoItem.'Remaining Qty Pcs') < (OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                'Item UOMS',
+                                SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                            ).'Quantity Per UOM'))),
+                             //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    ),
+                                    {
+                                        qtyPcs: (LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                        ).qtyPcs + (First(CurrentQtyScheme).Value))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: 0,
+                                        qtyPcs: First(CurrentQtyScheme).Value,
+                                        scheme: true
+                                    }
+                                );
+                            );
+                            //Testingggggg__________________________________________________________________________________________________
+            Patch(
+                                SequenceTestingVariable1,
+                                First(SequenceTestingVariable1),
+                                {Value: true}
+                            );
+                            ForAll(
+                                Sequence(OneFifoItem.'Remaining Qty Cases') As sequenceNo,
+                                If(
+                                    First(SequenceTestingVariable1).Value,
+                                    If(
+                                        ((sequenceNo.Value * LookUp(
+                                            'Item UOMS',
+                                            SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                        ).'Quantity Per UOM') >= (First(CurrentQty).Value - OneFifoItem.'Remaining Qty Pcs')),
+                                        Patch(
+                                            SequenceTestingVariable1,
+                                            First(SequenceTestingVariable1),
+                                            {Value: false}
+                                        );
+                                        Patch(
+                                            SequenceNo1,
+                                            First(SequenceNo1),
+                                            {Value: sequenceNo.Value}
+                                        );
+                                    )
+                                )
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Pcs': (First(SequenceNo1).Value * LookUp(
+                                        'Item UOMS',
+                                        SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                    ).'Quantity Per UOM') - (First(CurrentQtyScheme).Value - OneFifoItem.'Remaining Qty Pcs'),
+                                    'Invoiced Qty Pcs.': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Pcs.') + First(CurrentQtyScheme).Value),
+                                    'Remaining Qty Cases': OneFifoItem.'Remaining Qty Cases' - First(SequenceNo1).Value
+                                }
+                            );
+                            Patch(
+                                CurrentQtyScheme,
+                                First(CurrentQtyScheme),
+                                {Value: 0}
+                            );
+                            ,
+                            //Checking Third condition if the (qty is greater then remainining pcs) && ((Qty-Rem Pcs)> Conversion) ______
+                            ((First(CurrentQtyScheme).Value > OneFifoItem.'Remaining Qty Pcs') && ((First(CurrentQtyScheme).Value - OneFifoItem.'Remaining Qty Pcs') > (OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                'Item UOMS',
+                                SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                            ).'Quantity Per UOM'))),
+                             //////______________CART MANIPULATION
+                            If(
+                                !IsBlank(
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    )
+                                ),
+                                Patch(
+                                    colManipulatedCartItems,
+                                    LookUp(
+                                        colManipulatedCartItems,
+                                        skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                    ),
+                                    {
+                                        qtyPcs: (( LookUp(
+                                            colManipulatedCartItems,
+                                            skuId = OneFifoItem.SKU.'SKU Master' && manDate = OneFifoItem.'Manufacturing date' && scheme = true
+                                        ).qtyPcs) + ((OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                            'Item UOMS',
+                                            SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                        ).'Quantity Per UOM') + (OneFifoItem.'Remaining Qty Pcs')))
+                                    }
+                                ),
+                                Collect(
+                                    colManipulatedCartItems,
+                                    {
+                                        cartItem: OneProductItem,
+                                        manDate: OneFifoItem.'Manufacturing date',
+                                        skuId: OneFifoItem.SKU.'SKU Master',
+                                        qtyCases: 0,
+                                        qtyPcs: ((OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                            'Item UOMS',
+                                            SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                        ).'Quantity Per UOM') + (OneFifoItem.'Remaining Qty Pcs')),
+                                        scheme: true
+                                    }
+                                );
+                            );
+                            ///////________________UPDATE STOCK IN STOCK TRANSFER LINES
+            Patch(
+                                'Stock Transfer Lines',
+                                LookUp(
+                                    'Stock Transfer Lines' As oneStockLine,
+                                    ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                ),
+                                {
+                                    'Remaining Qty Pcs': 0,
+                                    'Invoiced Qty Pcs.': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Pcs.') + ((OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                        'Item UOMS',
+                                        SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                    ).'Quantity Per UOM') + (OneFifoItem.'Remaining Qty Pcs'))),
+                                    'Remaining Qty Cases': 0
+                                    /*'Invoiced Qty Cases': ((LookUp(
+                                        'Stock Transfer Lines' As oneStockLine,
+                                        ((oneStockLine.'Transfer Order No'.'Stock Transfer Header' = OneFifoItem.'Transfer Order No'.'Stock Transfer Header') && (oneStockLine.SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master') && (oneStockLine.'Manufacturing date' = OneFifoItem.'Manufacturing date') && IsToday(oneStockLine.'Created On'))
+                                    ).'Invoiced Qty Cases') + OneFifoItem.'Remaining Qty Cases')*/
+                                }
+                            );
+                            Patch(
+                                CurrentQtyScheme,
+                                First(CurrentQtyScheme),
+                                {
+                                    Value: ((First(CurrentQtyScheme).Value - OneFifoItem.'Remaining Qty Pcs') - (OneFifoItem.'Remaining Qty Cases' * LookUp(
+                                        'Item UOMS',
+                                        SKU.'SKU Master' = OneFifoItem.SKU.'SKU Master'
+                                    ).'Quantity Per UOM'))
+                                }
+                            );
+                        )
+                    )
+                )
+            );
+            /////////////////////////////////////////////////////////_______________ORDER PLACEMENT
+            If(
+                OrderData.'Mode Of Payment' = 'Payment Type (choice)'.CASH || OrderData.'Mode Of Payment' = 'Payment Type (choice)'.COUPON,
+                ClearCollect(
+                    CreateOrderRecord,
+                    Patch(
+                        'Order Headers',
+                        LookUp(
+                            'Order Headers',
+                            Vists.'Visit ID' = First(VisitData).'Visit ID'
+                        ),
+                        {
+                            'Total Quantity': (Sum(
+                                colManipulatedCartItems,
+                                qtyCases
+                            ) + Sum(
+                                colManipulatedCartItems,
+                                qtyPcs
+                            )),
+                            'Net Amount': Sum(
+                                colManipulatedCartItems,
+                                cartItem.netAmount
+                            ),
+                            'Total Amount': (Sum(
+                                colManipulatedCartItems,
+                                cartItem.discountedPrice
+                            ) ),
+                            'Total Tax Amount': (Sum(
+                                colManipulatedCartItems,
+                                cartItem.taxAmount
+                            )),
+                            'Total Discount Amount': Sum(
+                                colManipulatedCartItems,
+                                cartItem.discount
+                            )
+                        }
+                    )
+                );
+                If(
+                    !IsBlank(CreateOrderRecord),
+                    ClearCollect(
+                        CreateItemsRecord,
+                        ForAll(
+                            colManipulatedCartItems As ThissItem,
+                            If(
+                                IsBlank(
+                                    LookUp(
+                                        'Order Lines',
+                                        'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = ThissItem.skuId
+                                    )
+                                ),
+                                Patch(
+                                    'Order Lines',
+                                    Defaults('Order Lines'),
+                                    {
+                                        'Total Quantity': ThissItem.qtyCases + ThissItem.qtyPcs,
+                                        Cases: ThissItem.qtyCases,
+                                        PCs: ThissItem.qtyPcs,
+                                        'Empty Jars': ThissItem.cartItem.emptyJar,
+                                        'Order Number': LookUp(
+                                            'Order Headers',
+                                            'Order Number' = First(CreateOrderRecord).'Order Number'
+                                        ),
+                                        'Item SKU': LookUp(
+                                            'SKU Masters',
+                                            'SKU Master' = ThissItem.skuId
+                                        ),
+                                        'Cases Unit Price': ThissItem.caseUnitPrice,
+                                        'Pcs Unit Price': ThissItem.pcsUnitPrice,
+                                        // 'Total Amount': (ThissItem.qtyCases * ThissItem.caseUnitPrice) + (ThissItem.qtyPcs * ThissItem.pcsUnitPrice),
+                                        'Total Discount Amount': Value(ThissItem.cartItem.discount),
+                                        'Tax Amount': ThissItem.cartItem.taxAmount,
+                                        'Net Amount': ThissItem.cartItem.netAmount,
+                                        'Customer no.': LookUp(
+                                            Customers_1,
+                                            Account = OrderData.Account
+                                        ),
+                                        'Route No': LookUp(
+                                            Areas,
+                                            Area = varUserArea.Area.Area
+                                        ),
+                                        'Reference Scheme ': LookUp(
+                                            'Scheme Orders',
+                                            'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                        ),
+                                        'Reference Line': LookUp(
+                                            'Order Lines',
+                                            'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = LookUp(
+                                                'Scheme Orders',
+                                                'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                            ).'Item Code'.'SKU Master'
+                                        ),
+                                        'Manufacturing Date': DateValue(ThissItem.manDate)
+                                    }
+                                ),
+                                Patch(
+                                    'Order Lines',
+                                    LookUp(
+                                        'Order Lines',
+                                        'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = ThissItem.skuId
+                                    ),
+                                    {
+                                        'Total Quantity': ThissItem.qtyCases + ThissItem.qtyPcs,
+                                        Cases: ThissItem.qtyCases,
+                                        PCs: ThissItem.qtyPcs,
+                                        'Empty Jars': ThissItem.cartItem.emptyJar,
+                                        'Order Number': LookUp(
+                                            'Order Headers',
+                                            'Order Number' = First(CreateOrderRecord).'Order Number'
+                                        ),
+                                        'Item SKU': LookUp(
+                                            'SKU Masters',
+                                            'SKU Master' = ThissItem.skuId
+                                        ),
+                                        'Cases Unit Price': ThissItem.caseUnitPrice,
+                                        'Pcs Unit Price': ThissItem.pcsUnitPrice,
+                                        // 'Total Amount': (ThissItem.qtyCases * ThissItem.caseUnitPrice) + (ThissItem.qtyPcs * ThissItem.pcsUnitPrice),
+                                        'Total Discount Amount': Value(ThissItem.cartItem.discount),
+                                        'Tax Amount': ThissItem.cartItem.taxAmount,
+                                        'Net Amount': ThissItem.cartItem.netAmount,
+                                        'Customer no.': LookUp(
+                                            Customers_1,
+                                            Account = OrderData.Account
+                                        ),
+                                        'Route No': LookUp(
+                                            Areas,
+                                            Area = varUserArea.Area.Area
+                                        ),
+                                        'Reference Scheme ': LookUp(
+                                            'Scheme Orders',
+                                            'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                        ),
+                                        'Reference Line': LookUp(
+                                            'Order Lines',
+                                            'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = LookUp(
+                                                'Scheme Orders',
+                                                'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                            ).'Item Code'.'SKU Master'
+                                        ),
+                                        'Manufacturing Date': DateValue(ThissItem.manDate)
+                                    }
+                                )
+                            )
+                        )
+                    );
+                    
+            /////////// Patch Invoice Header////////////////////
+            ClearCollect(
+                        CreateInvHeader,
+                        Patch(
+                            'Invoice Headers',
+                            LookUp(
+                                'Invoice Headers',
+                                'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number'
+                            ),
+                            {
+                                Salesperson: LookUp(
+                                    Users,
+                                    'Primary Email' = User().Email
+                                ),
+                                Customer: LookUp(
+                                    Customers_1,
+                                    Account = OrderData.Account
+                                ),
+                                'Route No': LookUp(
+                                    Areas,
+                                    Area = varUserArea.Area.Area
+                                ),
+                                'Van No': LookUp(
+                                    Warehouses,
+                                    Warehouse = varUserVanNo.Van.Warehouse
+                                ),
+                                'Invoice Date': Now(),
+                                'Order Type': 'Order Type (Choice)'.'Sales Order',
+                                'Order Number': LookUp(
+                                    'Order Headers',
+                                    'Order Number' = First(CreateOrderRecord).'Order Number'
+                                ),
+                                'Total Amount': (Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.discountedPrice
+                                ) ),
+                                'Total Tax Amount': (Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.taxAmount
+                                )),
+                                'Total Discount Amount': Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.discount
+                                ),
+                                'Net Amount': (Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.netAmount
+                                )),
+                                'Mode of Payment': OrderData.'Mode Of Payment'
+                                //'IRN Number':,
+                                //'IRN Status':,
+                                //'IRN Message':,
+                                //'Signed QR Code':,
+                                //'Synced Date':,
+                            }
+                        )
+                    );
+                    Patch(
+                        'Invoice Series',
+                        LookUp(
+                            'Invoice Series',
+                            'Route No'.Area = LookUp(
+                                Areas,
+                                Area = varUserArea.Area.Area
+                            ).Area
+                        ),
+                        {
+                            'Sequence No': LookUp(
+                                'Invoice Series',
+                                'Route No'.Area = LookUp(
+                                    Areas,
+                                    Area = varUserArea.Area.Area
+                                ).Area
+                            ).'Sequence No' + 1
+                        }
+                    );
+                    
+            //////////////Patch Invoice Line ///////////////////
+            ClearCollect(
+                        CreateInvLine,
+                        ForAll(
+                            colManipulatedCartItems As OrdrItems,
+                            If(
+                                IsBlank(
+                                    LookUp(
+                                        'Invoice Lines',
+                                        'Invoice Number'.'Invoice Number' = First(CreateInvHeader).'Invoice Number' && 'Item SKU'.'SKU Master' = OrdrItems.skuId
+                                    )
+                                ),
+                                Patch(
+                                    'Invoice Lines',
+                                    Defaults('Invoice Lines'),
+                                    {
+                                        'Invoice Number': LookUp(
+                                            'Invoice Headers',
+                                            'Invoice Header' = First(CreateInvHeader).'Invoice Header'
+                                        ),
+                                        'Order Number': LookUp(
+                                            'Order Headers',
+                                            'Order Number' = First(CreateOrderRecord).'Order Number'
+                                        ),
+                                        'Item Type': If(
+                                            OrdrItems.cartItem.schemeOrder = true,
+                                            'Item Type (Choice)'.Free,
+                                            'Item Type (Choice)'.Paid
+                                        ),
+                                        'Cases Unit Price': OrdrItems.totalCasePriceWithoutDisc,
+                                        'Pcs Unit Price': OrdrItems.totalPcsPriceWithoutDisc,
+                                        'Total Quantity': OrdrItems.qtyCases + OrdrItems.qtyPcs,
+                                        Cases: OrdrItems.qtyCases,
+                                        PCs: OrdrItems.qtyPcs,
+                                        'Total Discount Amount': Value(OrdrItems.cartItem.discount),
+                                        'Tax Amount': OrdrItems.cartItem.taxAmount,
+                                        Rate: OrdrItems.cartItem.netAmount,
+                                        Customer: LookUp(
+                                            Customers_1,
+                                            Account = OrderData.Account
+                                        ),
+                                        'Route No': LookUp(
+                                            Areas,
+                                            Area = varUserArea.Area.Area
+                                        ),
+                                        Salesperson: LookUp(
+                                            Users,
+                                            'Primary Email' = User().Email
+                                        ),
+                                        'Van No': LookUp(
+                                            Warehouses,
+                                            Warehouse = varUserVanNo.Van.Warehouse
+                                        ),
+                                        'Item SKU': LookUp(
+                                            'SKU Masters',
+                                            'SKU Master' = OrdrItems.skuId
+                                        )
+                                    }
+                                ),
+                                Patch(
+                                    'Invoice Lines',
+                                    LookUp(
+                                        'Invoice Lines',
+                                        'Invoice Number'.'Invoice Number' = First(CreateInvHeader).'Invoice Number'
+                                    ),
+                                    {
+                                        'Invoice Number': LookUp(
+                                            'Invoice Headers',
+                                            'Invoice Header' = First(CreateInvHeader).'Invoice Header'
+                                        ),
+                                        'Order Number': LookUp(
+                                            'Order Headers',
+                                            'Order Number' = First(CreateOrderRecord).'Order Number'
+                                        ),
+                                        'Item Type': If(
+                                            OrdrItems.cartItem.schemeOrder = true,
+                                            'Item Type (Choice)'.Free,
+                                            'Item Type (Choice)'.Paid
+                                        ),
+                                        'Cases Unit Price': OrdrItems.totalCasePriceWithoutDisc,
+                                        'Pcs Unit Price': OrdrItems.totalPcsPriceWithoutDisc,
+                                        'Total Quantity': OrdrItems.qtyCases + OrdrItems.qtyPcs,
+                                        Cases: OrdrItems.qtyCases,
+                                        PCs: OrdrItems.qtyPcs,
+                                        'Total Discount Amount': Value(OrdrItems.cartItem.discount),
+                                        'Tax Amount': OrdrItems.cartItem.taxAmount,
+                                        Rate: OrdrItems.cartItem.netAmount,
+                                        Customer: LookUp(
+                                            Customers_1,
+                                            Account = OrderData.Account
+                                        ),
+                                        'Route No': LookUp(
+                                            Areas,
+                                            Area = varUserArea.Area.Area
+                                        ),
+                                        Salesperson: LookUp(
+                                            Users,
+                                            'Primary Email' = User().Email
+                                        ),
+                                        'Van No': LookUp(
+                                            Warehouses,
+                                            Warehouse = varUserVanNo.Van.Warehouse
+                                        )
+                                    }
+                                )
+                            )
+                        )
+                    );
+                    
+            ////////// Print Invoice ///////////////  
+            /*Launch(
+                        Invoice.Run(
+                            LookUp(
+                                'Invoice Headers',
+                                'Invoice Header' = First(CreateInvHeader).'Invoice Header'
+                            ).'Invoice Header'
+                        ).bisleriinvoice
+                    );*/
+                );
+                
+            //Stock substraction from location ____________________________________________________________________________________
+            ForAll(
+                    colManipulatedCartItems As oneLine,
+                    Patch(
+                        'Current Stocks',
+                        LookUp(
+                            'Current Stocks',
+                            'Item SKU'.'SKU Master' = oneLine.skuId && 'Van No'.Warehouse = varUserVanNo.Van.Warehouse && IsToday('Created On')
+                        ),
+                        {
+                            Cases: Sum(
+                                Filter(
+                                    'Stock Transfer Lines',
+                                    'Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID && SKU.'SKU Master' = oneLine.skuId && IsToday('Created On') && 'Transfer accepted' = 'Transfer accepted (Stock Transfer Lines)'.Yes
+                                ),
+                                'Remaining Qty Cases'
+                            ),
+                            PCs: Sum(
+                                Filter(
+                                    'Stock Transfer Lines',
+                                    'Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID && SKU.'SKU Master' = oneLine.skuId && IsToday('Created On') && 'Transfer accepted' = 'Transfer accepted (Stock Transfer Lines)'.Yes
+                                ),
+                                'Remaining Qty Pcs'
+                            )
+                        }
+                    )
+                );
+                Refresh('Current Stocks');
+                /* Set(
+                    VarPaymentConfirm,
+                    true
+                ); */
+            ,
+                ///////////////////////////////////////////////////////////////////////////////////////////////Credit Customer____
+                OrderData.'Mode Of Payment' = 'Payment Type (choice)'.CREDIT && LookUp(
+                    Customers_1,
+                    Account = OrderData.Account
+                ).'Credit Activated' = 'Credit Activated (Customers_1)'.Yes,
+                If(
+                    !IsBlank(
+                        LookUp(
+                            'Temporary Credit Limits',
+                            'Customer code'.Account = OrderData.Account && FromDate <= Today() && ToDate >= Today()
+                        )
+                    ),
+                    ///////////_____________________________________________________________________________Temporary Credit Exists
+                    If(
+                        ((LookUp(
+                            'Temporary Credit Limits',
+                            'Customer code'.Account = OrderData.Account && FromDate <= Today() && ToDate >= Today()
+                        ).'Available Limit') - (LookUp(
+                            Customers_1,
+                            Account = OrderData.Account
+                        ).'Used Credit Limit') - (Sum(
+                            Filter(
+                                'Order Headers',
+                                Customer.Account = OrderData.Account && IsToday('Created On')
+                            ),
+                            'Net Amount'
+                        ))) < (Sum(
+                            colManipulatedCartItems,
+                            cartItem.netAmount
+                        )),
+                        Notify(
+                            "You don't have sufficient credit limit left, Please check",
+                            NotificationType.Error,
+                            2000
+                        );
+                   // Navigate('Visit Screen'),
+            ,
+                        ClearCollect(
+                            CreateOrderRecord,
+                            Patch(
+                                'Order Headers',
+                                LookUp(
+                                    'Order Headers',
+                                    'Order Number' = paymentData.'Order Number'
+                                ),
+                                {
+                                    'Order Date': Today(),
+                                    'Order Type': 'Order Type (Choice)'.'Sales Order',
+                                    'Payment Type': 'Payment Type (Order Headers)'.Credit,
+                                    'Total Quantity': Sum(
+                                        colManipulatedCartItems,
+                                        qtyCases
+                                    ) + Sum(
+                                        colManipulatedCartItems,
+                                        qtyPcs
+                                    ),
+                                    'Net Amount': (Sum(
+                                        colManipulatedCartItems,
+                                        cartItem.netAmount
+                                    ) ),
+                                    'Van No': LookUp(
+                                        Warehouses,
+                                        Warehouse = varUserVanNo.Van.Warehouse
+                                    ),
+                                    'Route No': LookUp(
+                                        Areas,
+                                        Area = varUserArea.Area.Area
+                                    ),
+                                    Customer: LookUp(
+                                        Customers_1,
+                                        Account = OrderData.Account
+                                    ),
+                                    Salesperson: LookUp(
+                                        Users,
+                                        'Primary Email' = User().Email
+                                    ),
+                                    'Delivery Date': Today(),
+                                    'Total Amount': (Sum(
+                                        colManipulatedCartItems,
+                                        cartItem.discountedPrice
+                                    )),
+                                    'Total Tax Amount': (Sum(
+                                        colManipulatedCartItems,
+                                        cartItem.taxAmount
+                                    )),
+                                    'Total Discount Amount': Sum(
+                                        colManipulatedCartItems,
+                                        cartItem.discount
+                                    )
+                                }
+                            )
+                        );
+                        If(
+                            !IsBlank(CreateOrderRecord),
+                            ClearCollect(
+                                CreateItemsRecord,
+                                ForAll(
+                                    colManipulatedCartItems As ThissItem,
+                                    If(
+                                        IsBlank(
+                                            LookUp(
+                                                'Order Lines',
+                                                'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = ThissItem.skuId
+                                            )
+                                        ),
+                                        Patch(
+                                            'Order Lines',
+                                            Defaults('Order Lines'),
+                                            {
+                                                'Total Quantity': ThissItem.qtyCases + ThissItem.qtyPcs,
+                                                Cases: ThissItem.qtyCases,
+                                                PCs: ThissItem.qtyPcs,
+                                                'Empty Jars': ThissItem.cartItem.emptyJar,
+                                                'Order Number': LookUp(
+                                                    'Order Headers',
+                                                    'Order Number' = First(CreateOrderRecord).'Order Number'
+                                                ),
+                                                Salesperson: LookUp(
+                                                    Users,
+                                                    'Primary Email' = User().Email
+                                                ),
+                                                'Van No': LookUp(
+                                                    Warehouses,
+                                                    Warehouse = varUserVanNo.Van.Warehouse
+                                                ),
+                                                'Item Type': If(
+                                                    ThissItem.cartItem.schemeOrder = true,
+                                                    'Item Type (Choice)'.Free,
+                                                    'Item Type (Choice)'.Paid
+                                                ),
+                                                'Item SKU': LookUp(
+                                                    'SKU Masters',
+                                                    'SKU Master' = ThissItem.skuId
+                                                ),
+                                                'Cases Unit Price': ThissItem.caseUnitPrice,
+                                                'Pcs Unit Price': ThissItem.pcsUnitPrice,
+                                                'Total Discount Amount': Value(ThissItem.cartItem.discount),
+                                                'Tax Amount': ThissItem.cartItem.taxAmount,
+                                                'Net Amount': ThissItem.cartItem.netAmount,
+                                                'Customer no.': LookUp(
+                                                    Customers_1,
+                                                    Account = OrderData.Account
+                                                ),
+                                                'Route No': LookUp(
+                                                    Areas,
+                                                    Area = varUserArea.Area.Area
+                                                ),
+                                                'Reference Scheme ': LookUp(
+                                                    'Scheme Orders',
+                                                    'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                                ),
+                                                'Reference Line': LookUp(
+                                                    'Order Lines',
+                                                    'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = LookUp(
+                                                        'Scheme Orders',
+                                                        'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                                    ).'Item Code'.'SKU Master'
+                                                ),
+                                                'Manufacturing Date': DateValue(ThissItem.manDate)
+                                            }
+                                        ),
+                                        Patch(
+                                            'Order Lines',
+                                            LookUp(
+                                                'Order Lines',
+                                                'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = ThissItem.skuId
+                                            ),
+                                            {
+                                                'Total Quantity': ThissItem.qtyCases + ThissItem.qtyPcs,
+                                                Cases: ThissItem.qtyCases,
+                                                PCs: ThissItem.qtyPcs,
+                                                'Empty Jars': ThissItem.cartItem.emptyJar,
+                                                'Order Number': LookUp(
+                                                    'Order Headers',
+                                                    'Order Number' = First(CreateOrderRecord).'Order Number'
+                                                ),
+                                                'Item SKU': LookUp(
+                                                    'SKU Masters',
+                                                    'SKU Master' = ThissItem.skuId
+                                                ),
+                                                'Cases Unit Price': ThissItem.caseUnitPrice,
+                                                'Pcs Unit Price': ThissItem.pcsUnitPrice,
+                                                // 'Total Amount': (ThissItem.qtyCases * ThissItem.caseUnitPrice) + (ThissItem.qtyPcs * ThissItem.pcsUnitPrice),
+                                                'Total Discount Amount': Value(ThissItem.cartItem.discount),
+                                                'Tax Amount': ThissItem.cartItem.taxAmount,
+                                                'Net Amount': ThissItem.cartItem.netAmount,
+                                                'Customer no.': LookUp(
+                                                    Customers_1,
+                                                    Account = OrderData.Account
+                                                ),
+                                                'Route No': LookUp(
+                                                    Areas,
+                                                    Area = varUserArea.Area.Area
+                                                ),
+                                                'Reference Scheme ': LookUp(
+                                                    'Scheme Orders',
+                                                    'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                                ),
+                                                'Reference Line': LookUp(
+                                                    'Order Lines',
+                                                    'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = LookUp(
+                                                        'Scheme Orders',
+                                                        'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                                    ).'Item Code'.'SKU Master'
+                                                ),
+                                                'Manufacturing Date': DateValue(ThissItem.manDate)
+                                            }
+                                        )
+                                    )
+                                )
+                            );
+                            
+            /////////// Patch Invoice Header////////////////////
+            ClearCollect(
+                                CreateInvHeader,
+                                Patch(
+                                    'Invoice Headers',
+                                    LookUp(
+                                        'Invoice Headers',
+                                        'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number'
+                                    ),
+                                    {
+                                        Salesperson: LookUp(
+                                            Users,
+                                            'Primary Email' = User().Email
+                                        ),
+                                        Customer: LookUp(
+                                            Customers_1,
+                                            Account = OrderData.Account
+                                        ),
+                                        'Route No': LookUp(
+                                            Areas,
+                                            Area = varUserArea.Area.Area
+                                        ),
+                                        'Van No': LookUp(
+                                            Warehouses,
+                                            Warehouse = varUserVanNo.Van.Warehouse
+                                        ),
+                                        'Invoice Date': Today(),
+                                        'Order Type': 'Order Type (Choice)'.'Sales Order',
+                                        'Order Number': LookUp(
+                                            'Order Headers',
+                                            'Order Number' = First(CreateOrderRecord).'Order Number'
+                                        ),
+                                        'Total Amount': (Sum(
+                                            colManipulatedCartItems,
+                                            cartItem.discountedPrice
+                                        ) ),
+                                        'Total Tax Amount': (Sum(
+                                            colManipulatedCartItems,
+                                            cartItem.taxAmount
+                                        ) ),
+                                        'Total Discount Amount': Sum(
+                                            colManipulatedCartItems,
+                                            cartItem.discount
+                                        ),
+                                        'Net Amount': (Sum(
+                                            colManipulatedCartItems,
+                                            cartItem.netAmount
+                                        ) ),
+                                        'Mode of Payment': 'Payment Type (choice)'.CREDIT
+                                    //'IRN Number':,
+                                    //'IRN Status':,
+                                    //'IRN Message':,
+                                    //'Signed QR Code':,
+                                    //'Synced Date':,
+                                    }
+                                )
+                            );
+                            Patch(
+                                'Invoice Series',
+                                LookUp(
+                                    'Invoice Series',
+                                    'Route No'.Area = LookUp(
+                                        Areas,
+                                        Area = varUserArea.Area.Area
+                                    ).Area
+                                ),
+                                {
+                                    'Sequence No': LookUp(
+                                        'Invoice Series',
+                                        'Route No'.Area = LookUp(
+                                            Areas,
+                                            Area = varUserArea.Area.Area
+                                        ).Area
+                                    ).'Sequence No' + 1
+                                }
+                            );
+                            
+            //////////////Patch Invoice Line ///////////////////
+            ClearCollect(
+                                CreateInvLine,
+                                ForAll(
+                                    colManipulatedCartItems As OrdrItems,
+                                    If(
+                                        IsBlank(
+                                            LookUp(
+                                                'Invoice Lines',
+                                                'Invoice Number'.'Invoice Number' = First(CreateInvHeader).'Invoice Number' && 'Item SKU'.'SKU Master' = OrdrItems.skuId
+                                            )
+                                        ),
+                                        Patch(
+                                            'Invoice Lines',
+                                            Defaults('Invoice Lines'),
+                                            {
+                                                'Invoice Number': LookUp(
+                                                    'Invoice Headers',
+                                                    'Invoice Header' = First(CreateInvHeader).'Invoice Header'
+                                                ),
+                                                'Order Number': LookUp(
+                                                    'Order Headers',
+                                                    'Order Number' = First(CreateOrderRecord).'Order Number'
+                                                ),
+                                                'Item Type': If(
+                                                    OrdrItems.cartItem.schemeOrder = true,
+                                                    'Item Type (Choice)'.Free,
+                                                    'Item Type (Choice)'.Paid
+                                                ),
+                                                'Cases Unit Price': OrdrItems.totalCasePriceWithoutDisc,
+                                                'Pcs Unit Price': OrdrItems.totalPcsPriceWithoutDisc,
+                                                'Total Quantity': OrdrItems.qtyCases + OrdrItems.qtyPcs,
+                                                Cases: OrdrItems.qtyCases,
+                                                PCs: OrdrItems.qtyPcs,
+                                                'Total Discount Amount': Value(OrdrItems.cartItem.discount),
+                                                'Tax Amount': OrdrItems.cartItem.taxAmount,
+                                                Rate: OrdrItems.cartItem.netAmount,
+                                                Customer: LookUp(
+                                                    Customers_1,
+                                                    Account = OrderData.Account
+                                                ),
+                                                'Route No': LookUp(
+                                                    Areas,
+                                                    Area = varUserArea.Area.Area
+                                                ),
+                                                Salesperson: LookUp(
+                                                    Users,
+                                                    'Primary Email' = User().Email
+                                                ),
+                                                'Van No': LookUp(
+                                                    Warehouses,
+                                                    Warehouse = varUserVanNo.Van.Warehouse
+                                                )
+                                            }
+                                        ),
+                                        Patch(
+                                            'Invoice Lines',
+                                            LookUp(
+                                                'Invoice Lines',
+                                                'Invoice Number'.'Invoice Number' = First(CreateInvHeader).'Invoice Number'
+                                            ),
+                                            {
+                                                'Invoice Number': LookUp(
+                                                    'Invoice Headers',
+                                                    'Invoice Header' = First(CreateInvHeader).'Invoice Header'
+                                                ),
+                                                'Order Number': LookUp(
+                                                    'Order Headers',
+                                                    'Order Number' = First(CreateOrderRecord).'Order Number'
+                                                ),
+                                                'Item Type': If(
+                                                    OrdrItems.cartItem.schemeOrder = true,
+                                                    'Item Type (Choice)'.Free,
+                                                    'Item Type (Choice)'.Paid
+                                                ),
+                                                'Cases Unit Price': OrdrItems.totalCasePriceWithoutDisc,
+                                                'Pcs Unit Price': OrdrItems.totalPcsPriceWithoutDisc,
+                                                'Total Quantity': OrdrItems.qtyCases + OrdrItems.qtyPcs,
+                                                Cases: OrdrItems.qtyCases,
+                                                PCs: OrdrItems.qtyPcs,
+                                                'Total Discount Amount': Value(OrdrItems.cartItem.discount),
+                                                'Tax Amount': OrdrItems.cartItem.taxAmount,
+                                                Rate: OrdrItems.cartItem.netAmount,
+                                                Customer: LookUp(
+                                                    Customers_1,
+                                                    Account = OrderData.Account
+                                                ),
+                                                'Route No': LookUp(
+                                                    Areas,
+                                                    Area = varUserArea.Area.Area
+                                                ),
+                                                Salesperson: LookUp(
+                                                    Users,
+                                                    'Primary Email' = User().Email
+                                                ),
+                                                'Van No': LookUp(
+                                                    Warehouses,
+                                                    Warehouse = varUserVanNo.Van.Warehouse
+                                                )
+                                            }
+                                        )
+                                    )
+                                )
+                            );
+                            /*Launch(
+                                Invoice.Run(
+                                    LookUp(
+                                        'Invoice Headers',
+                                        'Invoice Header' = First(CreateInvHeader).'Invoice Header'
+                                    ).'Invoice Header'
+                                ).bisleriinvoice
+                            );*/
+                        );
+                        
+            //Stock substraction from location ____________________________________________________________________________________
+            ForAll(
+                            colManipulatedCartItems As oneLine,
+                            Patch(
+                                'Current Stocks',
+                                LookUp(
+                                    'Current Stocks',
+                                    'Item SKU'.'SKU Master' = oneLine.skuId && 'Van No'.Warehouse = varUserVanNo.Van.Warehouse && IsToday('Created On')
+                                ),
+                                {
+                                    Cases: Sum(
+                                        Filter(
+                                            'Stock Transfer Lines',
+                                            'Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID && SKU.'SKU Master' = oneLine.skuId && IsToday('Created On') && 'Transfer accepted' = 'Transfer accepted (Stock Transfer Lines)'.Yes
+                                        ),
+                                        'Remaining Qty Cases'
+                                    ),
+                                    PCs: Sum(
+                                        Filter(
+                                            'Stock Transfer Lines',
+                                            'Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID && SKU.'SKU Master' = oneLine.skuId && IsToday('Created On') && 'Transfer accepted' = 'Transfer accepted (Stock Transfer Lines)'.Yes
+                                        ),
+                                        'Remaining Qty Pcs'
+                                    )
+                                }
+                            )
+                        );
+                        Refresh('Current Stocks');
+                        
+            ///////////////////////////////////////////////////////////////////////////Credit Updation in Temporary Credit customer
+            /*Patch(
+                            'Temporary Credit Limits',
+                            LookUp(
+                                'Temporary Credit Limits',
+                                'Customer code'.Account = OrderData.Account && FromDate <= Today() && ToDate >= Today()
+                            ),
+                            {
+                                BlockedLimit: LookUp(
+                                    'Temporary Credit Limits',
+                                    'Customer code'.Account = OrderData.Account && FromDate <= Today() && ToDate >= Today()
+                                ).BlockedLimit + ((Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.discountedPrice
+                                ) * ((Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.tax
+                                )) * 0.01)) + Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.discountedPrice
+                                ) + Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.emptyJarValue
+                                ))
+                            }
+                        ); */
+                     /*   Set(
+                            VarPaymentConfirm,
+                            true
+                        ); */
+                    ),
+                ////////////______________________________________________Temporary customer credit does not exists, Permanent exists    
+                    If(
+                        ((LookUp(
+                            Customers_1,
+                            Account = OrderData.Account
+                        ).'Total Credit limit') - (LookUp(
+                            Customers_1,
+                            Account = OrderData.Account
+                        ).'Used Credit Limit') - (Sum(
+                            Filter(
+                                'Order Headers',
+                                Customer.Account = OrderData.Account && IsToday('Created On')
+                            ),
+                            'Net Amount'
+                        ))) < (Sum(
+                            colManipulatedCartItems,
+                            cartItem.netAmount
+                        )),
+                        Notify(
+                            "You don't have sufficient credit limit left, Please check",
+                            NotificationType.Error,
+                            2000
+                        );
+                   // Navigate('Visit Screen'),
+            ,
+                        ClearCollect(
+                            CreateOrderRecord,
+                            Patch(
+                                'Order Headers',
+                                LookUp(
+                                    'Order Headers',
+                                    'Order Number' = paymentData.'Order Number'
+                                ),
+                                {
+                                    'Order Date': Today(),
+                                    'Order Type': 'Order Type (Choice)'.'Sales Order',
+                                    'Payment Type': 'Payment Type (Order Headers)'.Credit,
+                                    'Total Quantity': Sum(
+                                        colManipulatedCartItems,
+                                        qtyCases
+                                    ) + Sum(
+                                        colManipulatedCartItems,
+                                        qtyPcs
+                                    ),
+                                    'Net Amount': (Sum(
+                                        colManipulatedCartItems,
+                                        cartItem.netAmount
+                                    )),
+                                    'Van No': LookUp(
+                                        Warehouses,
+                                        Warehouse = varUserVanNo.Van.Warehouse
+                                    ),
+                                    'Route No': LookUp(
+                                        Areas,
+                                        Area = varUserArea.Area.Area
+                                    ),
+                                    Customer: LookUp(
+                                        Customers_1,
+                                        Account = OrderData.Account
+                                    ),
+                                    Salesperson: LookUp(
+                                        Users,
+                                        'Primary Email' = User().Email
+                                    ),
+                                    'Delivery Date': Today(),
+                                    'Total Amount': (Sum(
+                                        colManipulatedCartItems,
+                                        cartItem.discountedPrice
+                                    ) ),
+                                    'Total Tax Amount': (Sum(
+                                        colManipulatedCartItems,
+                                        cartItem.taxAmount
+                                    )),
+                                    'Total Discount Amount': Sum(
+                                        colManipulatedCartItems,
+                                        cartItem.discount
+                                    )
+                                }
+                            )
+                        );
+                        If(
+                            !IsBlank(CreateOrderRecord),
+                            ClearCollect(
+                                CreateItemsRecord,
+                                ForAll(
+                                    colManipulatedCartItems As ThissItem,
+                                    If(
+                                        IsBlank(
+                                            LookUp(
+                                                'Order Lines',
+                                                'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = ThissItem.skuId
+                                            )
+                                        ),
+                                        Patch(
+                                            'Order Lines',
+                                            Defaults('Order Lines'),
+                                            {
+                                                'Total Quantity': ThissItem.qtyCases + ThissItem.qtyPcs,
+                                                Cases: ThissItem.qtyCases,
+                                                PCs: ThissItem.qtyPcs,
+                                                'Empty Jars': ThissItem.cartItem.emptyJar,
+                                                'Order Number': LookUp(
+                                                    'Order Headers',
+                                                    'Order Number' = First(CreateOrderRecord).'Order Number'
+                                                ),
+                                                Salesperson: LookUp(
+                                                    Users,
+                                                    'Primary Email' = User().Email
+                                                ),
+                                                'Van No': LookUp(
+                                                    Warehouses,
+                                                    Warehouse = varUserVanNo.Van.Warehouse
+                                                ),
+                                                'Item Type': If(
+                                                    ThissItem.cartItem.schemeOrder = true,
+                                                    'Item Type (Choice)'.Free,
+                                                    'Item Type (Choice)'.Paid
+                                                ),
+                                                'Item SKU': LookUp(
+                                                    'SKU Masters',
+                                                    'SKU Master' = ThissItem.skuId
+                                                ),
+                                                'Cases Unit Price': ThissItem.caseUnitPrice,
+                                                'Pcs Unit Price': ThissItem.pcsUnitPrice,
+                                                'Total Discount Amount': Value(ThissItem.cartItem.discount),
+                                                'Tax Amount': ThissItem.cartItem.taxAmount,
+                                                'Net Amount': ThissItem.cartItem.netAmount,
+                                                'Customer no.': LookUp(
+                                                    Customers_1,
+                                                    Account = OrderData.Account
+                                                ),
+                                                'Route No': LookUp(
+                                                    Areas,
+                                                    Area = varUserArea.Area.Area
+                                                ),
+                                                'Reference Scheme ': LookUp(
+                                                    'Scheme Orders',
+                                                    'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                                ),
+                                                'Reference Line': LookUp(
+                                                    'Order Lines',
+                                                    'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = LookUp(
+                                                        'Scheme Orders',
+                                                        'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                                    ).'Item Code'.'SKU Master'
+                                                ),
+                                                'Manufacturing Date': DateValue(ThissItem.manDate)
+                                            }
+                                        ),
+                                        Patch(
+                                            'Order Lines',
+                                            LookUp(
+                                                'Order Lines',
+                                                'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = ThissItem.skuId
+                                            ),
+                                            {
+                                                'Total Quantity': ThissItem.qtyCases + ThissItem.qtyPcs,
+                                                Cases: ThissItem.qtyCases,
+                                                PCs: ThissItem.qtyPcs,
+                                                'Empty Jars': ThissItem.cartItem.emptyJar,
+                                                'Order Number': LookUp(
+                                                    'Order Headers',
+                                                    'Order Number' = First(CreateOrderRecord).'Order Number'
+                                                ),
+                                                'Item SKU': LookUp(
+                                                    'SKU Masters',
+                                                    'SKU Master' = ThissItem.skuId
+                                                ),
+                                                'Cases Unit Price': ThissItem.caseUnitPrice,
+                                                'Pcs Unit Price': ThissItem.pcsUnitPrice,
+                                                // 'Total Amount': (ThissItem.qtyCases * ThissItem.caseUnitPrice) + (ThissItem.qtyPcs * ThissItem.pcsUnitPrice),
+                                                'Total Discount Amount': Value(ThissItem.cartItem.discount),
+                                                'Tax Amount': ThissItem.cartItem.taxAmount,
+                                                'Net Amount': ThissItem.cartItem.netAmount,
+                                                'Customer no.': LookUp(
+                                                    Customers_1,
+                                                    Account = OrderData.Account
+                                                ),
+                                                'Route No': LookUp(
+                                                    Areas,
+                                                    Area = varUserArea.Area.Area
+                                                ),
+                                                'Reference Scheme ': LookUp(
+                                                    'Scheme Orders',
+                                                    'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                                ),
+                                                'Reference Line': LookUp(
+                                                    'Order Lines',
+                                                    'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number' && 'Item SKU'.'SKU Master' = LookUp(
+                                                        'Scheme Orders',
+                                                        'Scheme Order' = ThissItem.cartItem.schemeOrderValue.zx_schemeorderid
+                                                    ).'Item Code'.'SKU Master'
+                                                ),
+                                                'Manufacturing Date': DateValue(ThissItem.manDate)
+                                            }
+                                        )
+                                    )
+                                )
+                            );
+                            
+            /////////// Patch Invoice Header////////////////////
+            ClearCollect(
+                                CreateInvHeader,
+                                Patch(
+                                    'Invoice Headers',
+                                    LookUp(
+                                        'Invoice Headers',
+                                        'Order Number'.'Order Number' = First(CreateOrderRecord).'Order Number'
+                                    ),
+                                    {
+                                        Salesperson: LookUp(
+                                            Users,
+                                            'Primary Email' = User().Email
+                                        ),
+                                        Customer: LookUp(
+                                            Customers_1,
+                                            Account = OrderData.Account
+                                        ),
+                                        'Route No': LookUp(
+                                            Areas,
+                                            Area = varUserArea.Area.Area
+                                        ),
+                                        'Van No': LookUp(
+                                            Warehouses,
+                                            Warehouse = varUserVanNo.Van.Warehouse
+                                        ),
+                                        'Invoice Date': Today(),
+                                        'Order Type': 'Order Type (Choice)'.'Sales Order',
+                                        'Order Number': LookUp(
+                                            'Order Headers',
+                                            'Order Number' = First(CreateOrderRecord).'Order Number'
+                                        ),
+                                        'Total Amount': (Sum(
+                                            colCartItems,
+                                            discountedPrice
+                                        ) ),
+                                        'Total Tax Amount': (Sum(
+                                            colCartItems,
+                                            taxAmount
+                                        )),
+                                        'Total Discount Amount': Sum(
+                                            colCartItems,
+                                            discount
+                                        ),
+                                        'Net Amount': (Sum(
+                                            colCartItems,
+                                            netAmount
+                                        )),
+                                        'Mode of Payment': 'Payment Type (choice)'.CREDIT
+                                    //'IRN Number':,
+                                    //'IRN Status':,
+                                    //'IRN Message':,
+                                    //'Signed QR Code':,
+                                    //'Synced Date':,
+                                    }
+                                )
+                            );
+                            Patch(
+                                'Invoice Series',
+                                LookUp(
+                                    'Invoice Series',
+                                    'Route No'.Area = LookUp(
+                                        Areas,
+                                        Area = varUserArea.Area.Area
+                                    ).Area
+                                ),
+                                {
+                                    'Sequence No': LookUp(
+                                        'Invoice Series',
+                                        'Route No'.Area = LookUp(
+                                            Areas,
+                                            Area = varUserArea.Area.Area
+                                        ).Area
+                                    ).'Sequence No' + 1
+                                }
+                            );
+                            
+            //////////////Patch Invoice Line ///////////////////
+            ClearCollect(
+                                CreateInvLine,
+                                ForAll(
+                                    colManipulatedCartItems As OrdrItems,
+                                    If(
+                                        IsBlank(
+                                            LookUp(
+                                                'Invoice Lines',
+                                                'Invoice Number'.'Invoice Number' = First(CreateInvHeader).'Invoice Number' && 'Item SKU'.'SKU Master' = OrdrItems.skuId
+                                            )
+                                        ),
+                                        Patch(
+                                            'Invoice Lines',
+                                            Defaults('Invoice Lines'),
+                                            {
+                                                'Invoice Number': LookUp(
+                                                    'Invoice Headers',
+                                                    'Invoice Header' = First(CreateInvHeader).'Invoice Header'
+                                                ),
+                                                'Order Number': LookUp(
+                                                    'Order Headers',
+                                                    'Order Number' = First(CreateOrderRecord).'Order Number'
+                                                ),
+                                                'Item Type': If(
+                                                    OrdrItems.cartItem.schemeOrder = true,
+                                                    'Item Type (Choice)'.Free,
+                                                    'Item Type (Choice)'.Paid
+                                                ),
+                                                'Cases Unit Price': OrdrItems.totalCasePriceWithoutDisc,
+                                                'Pcs Unit Price': OrdrItems.totalPcsPriceWithoutDisc,
+                                                'Total Quantity': OrdrItems.qtyCases + OrdrItems.qtyPcs,
+                                                Cases: OrdrItems.qtyCases,
+                                                PCs: OrdrItems.qtyPcs,
+                                                'Total Discount Amount': Value(OrdrItems.cartItem.discount),
+                                                'Tax Amount': OrdrItems.cartItem.taxAmount,
+                                                Rate: OrdrItems.cartItem.netAmount,
+                                                Customer: LookUp(
+                                                    Customers_1,
+                                                    Account = OrderData.Account
+                                                ),
+                                                'Route No': LookUp(
+                                                    Areas,
+                                                    Area = varUserArea.Area.Area
+                                                ),
+                                                Salesperson: LookUp(
+                                                    Users,
+                                                    'Primary Email' = User().Email
+                                                ),
+                                                'Van No': LookUp(
+                                                    Warehouses,
+                                                    Warehouse = varUserVanNo.Van.Warehouse
+                                                )
+                                            }
+                                        ),
+                                        Patch(
+                                            'Invoice Lines',
+                                            LookUp(
+                                                'Invoice Lines',
+                                                'Invoice Number'.'Invoice Number' = First(CreateInvHeader).'Invoice Number'
+                                            ),
+                                            {
+                                                'Invoice Number': LookUp(
+                                                    'Invoice Headers',
+                                                    'Invoice Header' = First(CreateInvHeader).'Invoice Header'
+                                                ),
+                                                'Order Number': LookUp(
+                                                    'Order Headers',
+                                                    'Order Number' = First(CreateOrderRecord).'Order Number'
+                                                ),
+                                                'Item Type': If(
+                                                    OrdrItems.cartItem.schemeOrder = true,
+                                                    'Item Type (Choice)'.Free,
+                                                    'Item Type (Choice)'.Paid
+                                                ),
+                                                'Cases Unit Price': OrdrItems.totalCasePriceWithoutDisc,
+                                                'Pcs Unit Price': OrdrItems.totalPcsPriceWithoutDisc,
+                                                'Total Quantity': OrdrItems.qtyCases + OrdrItems.qtyPcs,
+                                                Cases: OrdrItems.qtyCases,
+                                                PCs: OrdrItems.qtyPcs,
+                                                'Total Discount Amount': Value(OrdrItems.cartItem.discount),
+                                                'Tax Amount': OrdrItems.cartItem.taxAmount,
+                                                Rate: OrdrItems.cartItem.netAmount,
+                                                Customer: LookUp(
+                                                    Customers_1,
+                                                    Account = OrderData.Account
+                                                ),
+                                                'Route No': LookUp(
+                                                    Areas,
+                                                    Area = varUserArea.Area.Area
+                                                ),
+                                                Salesperson: LookUp(
+                                                    Users,
+                                                    'Primary Email' = User().Email
+                                                ),
+                                                'Van No': LookUp(
+                                                    Warehouses,
+                                                    Warehouse = varUserVanNo.Van.Warehouse
+                                                )
+                                            }
+                                        )
+                                    )
+                                )
+                            );
+                            /*Launch(
+                                Invoice.Run(
+                                    LookUp(
+                                        'Invoice Headers',
+                                        'Invoice Header' = First(CreateInvHeader).'Invoice Header'
+                                    ).'Invoice Header'
+                                ).bisleriinvoice
+                            );*/
+                        );
+                        
+            //Stock substraction from location ____________________________________________________________________________________
+            ForAll(
+                            colManipulatedCartItems As oneLine,
+                            Patch(
+                                'Current Stocks',
+                                LookUp(
+                                    'Current Stocks',
+                                    'Item SKU'.'SKU Master' = oneLine.skuId && 'Van No'.Warehouse = varUserVanNo.Van.Warehouse && IsToday('Created On')
+                                ),
+                                {
+                                    Cases: Sum(
+                                        Filter(
+                                            'Stock Transfer Lines',
+                                            'Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID && SKU.'SKU Master' = oneLine.skuId && IsToday('Created On') && 'Transfer accepted' = 'Transfer accepted (Stock Transfer Lines)'.Yes
+                                        ),
+                                        'Remaining Qty Cases'
+                                    ),
+                                    PCs: Sum(
+                                        Filter(
+                                            'Stock Transfer Lines',
+                                            'Transfer Order No'.'Stock Transfer Header' in varGatePassHeaderAll.headerGUID && SKU.'SKU Master' = oneLine.skuId && IsToday('Created On') && 'Transfer accepted' = 'Transfer accepted (Stock Transfer Lines)'.Yes
+                                        ),
+                                        'Remaining Qty Pcs'
+                                    )
+                                }
+                            )
+                        );
+                        Refresh('Current Stocks');
+                        
+            ///////////////////////////////////////////////////////////////////////////Credit Updation in customer
+            /*Patch(
+                            Customers_1,
+                            LookUp(
+                                Customers_1,
+                                Account = OrderData.Account
+                            ),
+                            {
+                                'Remaining Credit Limit': LookUp(
+                                    Customers_1,
+                                    Account = OrderData.Account
+                                ).'Remaining Credit Limit' - ((Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.discountedPrice
+                                ) * ((Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.tax
+                                )) * 0.01)) + Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.discountedPrice
+                                ) + Sum(
+                                    colManipulatedCartItems,
+                                    cartItem.emptyJarValue
+                                ))
+                            }
+                        );*/
+                      /*  Set(
+                            VarPaymentConfirm,
+                            true
+                        );*/
+                    )
+                )
+            );
+        Repeat: =true
+        Reset: =If(var.body.resultInfo.resultCode="01",false,true)
+        Visible: =false
+        Width: =280
+        Y: =84
+        ZIndex: =2
+
+    Gallery2 As gallery.galleryVertical:
+        Height: =827
+        Items: =payments
+        Layout: =Layout.Vertical
+        TemplateSize: =822
+        Y: =308
+        ZIndex: =3
+
+        Image2 As image:
+            Height: =684
+            Image: |
+                =If(var.body.resultInfo.resultCode="01",'Screenshot 2023-02-20 at 6.26.57 PM',"data:image/png;base64,"&ThisItem.body.image)
+            ImagePosition: =ImagePosition.Stretch
+            OnSelect: =Select(Parent)
+            Width: =625
+            ZIndex: =1
+
+    Header_4 As Header:
+        HeaderText: ="Payment"
+        ZIndex: =4
+
+    BottomBar_2 As BottomBar:
+        Y: =1026
+        ZIndex: =5
+
+    Timer2 As timer:
+        AutoStart: =true
+        Duration: =120000
+        Height: =70
+        OnTimerEnd: =If(var.body.resultInfo.resultCode="01",false,Back())
+        Visible: =false
+        Width: =280
+        X: =248
+        Y: =187
+        ZIndex: =6
+

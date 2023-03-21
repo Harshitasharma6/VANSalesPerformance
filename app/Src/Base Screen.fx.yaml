@@ -1,0 +1,29 @@
+"'Base Screen' As screen.'phoneLayout_FluidGridWithHeaderPageLayout_ver3.0'":
+    Fill: =_VarGblAppColors.LightText
+
+    canBaseScreen As fluidGrid.fluidGridWithBlankCard:
+        BorderThickness: =0
+        Height: =App.Height-175
+        Width: =Parent.Width
+        Y: =80
+        ZIndex: =3
+
+        dataCardBaseScreen As dataCard:
+            BorderColor: =RGBA(0, 0, 0, 1)
+            BorderStyle: =BorderStyle.Solid
+            BorderThickness: =0
+            DisplayMode: =DisplayMode.Edit
+            Fill: =RGBA(0, 0, 0, 0)
+            Height: =Parent.Height - 100
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+            ZIndex: =1
+
+    compBaseHeader As Header:
+        ZIndex: =4
+
+    compBaseBottomBar As BottomBar:
+        Y: =1026
+        ZIndex: =5
+
